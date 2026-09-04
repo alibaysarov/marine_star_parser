@@ -3,16 +3,17 @@ import os
 import sys
 from pathlib import Path
 
-import argostranslate.package
-import argostranslate.translate
-from googletrans import Translator as GoogleTranslator
+# Эти переменные должны быть заданы до импорта argostranslate: его settings
+# вычисляет каталоги пакетов во время импорта модуля.
+ARGOS_DATA_DIR = Path(os.environ.get("PROGRAMDATA", "C:/ProgramData")) / "MarineParser"
+os.environ.setdefault("XDG_DATA_HOME", str(ARGOS_DATA_DIR))
+os.environ.setdefault("ARGOS_PACKAGES_DIR", str(ARGOS_DATA_DIR / "argos-translate" / "packages"))
 
-from app_logging import logger
+import argostranslate.package  # noqa: E402
+import argostranslate.translate  # noqa: E402
+from googletrans import Translator as GoogleTranslator  # noqa: E402
 
-# argostranslate использует Path.home() для data_dir, а C:\Users\Али
-# содержит кириллицу, которая ломает низкоуровневый sentencepiece (fopen).
-# Переопределяем через официальную переменную XDG_DATA_HOME на ASCII-путь.
-os.environ.setdefault("XDG_DATA_HOME", "C:/argos_data")
+from app_logging import logger  # noqa: E402
 
 BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 MODEL_PATH = BUNDLE_DIR / "models" / "translate-en_ru.argosmodel"
@@ -43,17 +44,14 @@ async def _argos_translate_batch_nonblocking(texts: list[str]) -> list[str]:
 
 
 async def translate_batch_async(texts: list[str]) -> list[str]:
-    """
-    Батч-перевод en->ru.
-    Основной путь: googletrans, асинхронно, одним запросом на весь список.
-    Фолбэк (неблокирующий): argostranslate, если googletrans упал.
-    """
+    """Переводит через Google Translate, используя Argos при ошибке сети."""
     if not texts:
         return []
     try:
         async with GoogleTranslator() as translator:
             results = await translator.translate(texts, src="en", dest="ru")
-        return [r.text for r in results]
+        logger.info("Переведено %d строк через Google Translate", len(texts))
+        return [result.text for result in results]
     except Exception:
         logger.exception("Google Translate недоступен, используется локальный перевод")
         return await _argos_translate_batch_nonblocking(texts)

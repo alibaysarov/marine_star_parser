@@ -5,6 +5,9 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from . import models  # noqa: F401
+from .base import Base
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -25,3 +28,5 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(bind=engine)
+
+Base.metadata.create_all(engine)

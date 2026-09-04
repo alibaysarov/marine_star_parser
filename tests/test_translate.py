@@ -42,12 +42,7 @@ def test_argos_fallback_translates_directly(monkeypatch):
     assert results[0] != ""
 
 
-def test_translate_batch_async_falls_back_on_googletrans_failure(monkeypatch):
-    """
-    Если googletrans падает, translate_batch_async должен без исключения
-    вернуть результат через argostranslate.
-    """
-
+def test_translate_batch_async_falls_back_to_local_argos(monkeypatch):
     class BrokenTranslator:
         async def __aenter__(self):
             raise RuntimeError("simulated googletrans failure")
