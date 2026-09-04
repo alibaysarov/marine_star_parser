@@ -4,7 +4,7 @@ test:
 	uv run pytest
 build: build-windows
 build-windows:
-	uv run pyinstaller --noconfirm --clean --onefile --windowed --name MarineParser --distpath bin --workpath build/pyinstaller --specpath build --add-data "$(CURDIR)/models;models" --add-data "$(CURDIR)/assets;assets" --collect-all argostranslate main.py
+	uv run pyinstaller --noconfirm --clean --onefile --windowed --name MarineParser --icon "$(CURDIR)/assets/logo.ico" --distpath bin --workpath build/pyinstaller --specpath build --add-data "$(CURDIR)/models;models" --add-data "$(CURDIR)/assets;assets" --collect-all argostranslate main.py
 build-installer: build-windows
 	ISCC installer/MarineParser.iss
 # build:
