@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 from pathlib import Path
 
 import argostranslate.package
@@ -11,7 +12,8 @@ from googletrans import Translator as GoogleTranslator
 # Переопределяем через официальную переменную XDG_DATA_HOME на ASCII-путь.
 os.environ.setdefault("XDG_DATA_HOME", "C:/argos_data")
 
-MODEL_PATH = Path(__file__).parent.parent / "models" / "translate-en_ru.argosmodel"
+BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+MODEL_PATH = BUNDLE_DIR / "models" / "translate-en_ru.argosmodel"
 
 _translation_ready = False
 

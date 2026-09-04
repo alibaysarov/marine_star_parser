@@ -42,6 +42,7 @@ ui_*.h
 
 # PyInstaller / PySide build
 build/
+bin/
 dist/
 *.spec
 

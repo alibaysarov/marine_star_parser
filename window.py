@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
@@ -7,10 +10,15 @@ from components.tabs.main_tab import MainTab
 from components.tabs.products_tab import ProductsTab
 
 
+def resource_path(relative_path: str) -> Path:
+    bundle_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    return bundle_dir / relative_path
+
+
 class MainWindow(QMainWindow):
     def __setup_window(self):
         self.setWindowTitle("Marine star parser")
-        icon = QIcon("assets/logo.jpg")
+        icon = QIcon(str(resource_path("assets/logo.jpg")))
         self.setWindowIcon(icon)
         self.resize(1024, 800)
 

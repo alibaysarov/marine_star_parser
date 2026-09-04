@@ -2,6 +2,9 @@ start:
 	uv run python main.py
 test:
 	uv run pytest
+build: build-windows
+build-windows:
+	uv run pyinstaller --noconfirm --clean --onefile --windowed --name MarineParser --distpath bin --workpath build/pyinstaller --specpath build --add-data "$(CURDIR)/models;models" --add-data "$(CURDIR)/assets;assets" --collect-all argostranslate main.py
 # build:
     # pyinstaller main.py --add-data "models\translate-en_ru.argosmodel;models"
 

@@ -4,6 +4,9 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
+import db.models  # noqa: F401
+from db.base import Base
+from db.session import engine
 from window import MainWindow
 
 
@@ -36,6 +39,7 @@ _setup_argos_data_dir()
 
 
 def boot():
+    Base.metadata.create_all(engine)
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
