@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app_logging import logger
 from excel_parser import ProductsLoader
 from helpers.get_selected_file import get_selected_file_path
 from service.parts_service import PartsService
@@ -65,6 +66,7 @@ class ProductUpload(QWidget):
             try:
                 self.loader.start()
             except Exception as error:
+                logger.exception("Ошибка запуска загрузки номенклатуры: %s", self.file_path)
                 self.is_loading.emit(False)
                 self._on_upload_error(error)
 
@@ -83,5 +85,6 @@ class ProductUpload(QWidget):
         QMessageBox.information(self, "Товары загружены", "товары загружены")
 
     def _on_upload_error(self, error: Exception):
+        logger.error("Ошибка загрузки номенклатуры: %s", error)
         self.is_loading.emit(False)
         QMessageBox.critical(self, "Ошибка", str(error))

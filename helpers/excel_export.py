@@ -5,6 +5,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
+from app_logging import logger
+
 
 def export_rows_to_excel(
     headers: Sequence[str],
@@ -34,5 +36,9 @@ def export_rows_to_excel(
         width = max(len(str(cell.value or "")) for cell in column_cells) + 2
         worksheet.column_dimensions[get_column_letter(column_index)].width = min(width, 60)
 
-    workbook.save(output_path)
+    try:
+        workbook.save(output_path)
+    except Exception:
+        logger.exception("Ошибка экспорта Excel: %s", output_path)
+        raise
     return output_path

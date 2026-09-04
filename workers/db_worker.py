@@ -3,6 +3,8 @@ from typing import Any, Callable
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
+from app_logging import logger
+
 
 class WorkerSignals(QObject):
     finished = Signal(object)  # результат функции
@@ -27,6 +29,7 @@ class DbWorker(QRunnable):
         try:
             result = self.fn(*self.args, **self.kwargs)
         except Exception as e:  # noqa: BLE001
+            logger.exception("Ошибка фоновой операции БД: %s", self.fn)
             self.signals.error.emit(e)
         else:
             self.signals.finished.emit(result)

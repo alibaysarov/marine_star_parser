@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app_logging import logger
 from components.labels.toast import Toast, ToastType
 from exceptions.exceptions import TableNotFoundError
 from pdf_parser.parse import calculate_products_from_file, update_product_price
@@ -33,6 +34,7 @@ class ProductWorker(QObject):
                 result = update_product_price(self.products if self.products else [], self.margin)
             self.finished.emit(result)
         except Exception as e:
+            logger.exception("Ошибка обработки PDF: %s", self.file_path)
             self.error.emit(e)
 
 
@@ -135,7 +137,7 @@ class FileUploaderWidget(QWidget):
         if isinstance(e, TableNotFoundError):
             Toast(self.window(), f"Ошибка обработки файла: {e}", type=ToastType.ERROR)
         else:
-            print(e)
+            logger.error("Ошибка загрузки PDF: %s", e)
             Toast(self.window(), "Ошибка обработки файла: попробуйте позже", type=ToastType.ERROR)
 
     def show_notification(self, message: str, duration_ms: int = 3000):

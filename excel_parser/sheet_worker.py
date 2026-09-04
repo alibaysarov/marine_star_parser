@@ -1,6 +1,8 @@
 import pandas as pd
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
+from app_logging import logger
+
 
 class SheetSignals(QObject):
     # QRunnable сам не умеет эмитить сигналы, поэтому нужен отдельный QObject
@@ -25,4 +27,5 @@ class SheetWorker(QRunnable):
             df = df.dropna(subset=["PNUS", "номер", "local_part_name"])
             self.signals.finished.emit(self.sheet_name, df)
         except Exception as e:
+            logger.exception("Ошибка чтения листа %s из %s", self.sheet_name, self.file_path)
             self.signals.error.emit(self.sheet_name, str(e))

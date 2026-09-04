@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from PySide6.QtCore import QObject, QThreadPool, Signal
 
+from app_logging import logger
+
 from .sheet_worker import SheetWorker
 
 
@@ -26,6 +28,7 @@ class ProductsLoader(QObject):
             excel_file = pd.ExcelFile(self.file_path)
             sheets = excel_file.sheet_names
         except Exception as error:
+            logger.exception("Ошибка открытия файла таблицы: %s", self.file_path)
             self.error.emit(error)
             return
 
@@ -42,7 +45,7 @@ class ProductsLoader(QObject):
         self._check_complete()
 
     def _on_sheet_error(self, sheet_name, msg):
-        print("Error", msg)
+        logger.error("Ошибка чтения листа %s из %s: %s", sheet_name, self.file_path, msg)
         self.errors[sheet_name] = msg
         self._check_complete()
 

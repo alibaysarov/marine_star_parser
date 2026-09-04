@@ -7,6 +7,8 @@ import argostranslate.package
 import argostranslate.translate
 from googletrans import Translator as GoogleTranslator
 
+from app_logging import logger
+
 # argostranslate использует Path.home() для data_dir, а C:\Users\Али
 # содержит кириллицу, которая ломает низкоуровневый sentencepiece (fopen).
 # Переопределяем через официальную переменную XDG_DATA_HOME на ASCII-путь.
@@ -53,6 +55,7 @@ async def translate_batch_async(texts: list[str]) -> list[str]:
             results = await translator.translate(texts, src="en", dest="ru")
         return [r.text for r in results]
     except Exception:
+        logger.exception("Google Translate недоступен, используется локальный перевод")
         return await _argos_translate_batch_nonblocking(texts)
 
 
