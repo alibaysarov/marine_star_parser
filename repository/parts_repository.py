@@ -20,26 +20,27 @@ class PartsRepository:
             # Защита от некорректных значений
             page = max(page, 1)
             per_page = max(per_page, 1)
-    
-            stmt = select(SparePart)
-    
-            # Если есть поисковый запрос
-            if search:
-                stmt = stmt.where(
-                    SparePart.name.ilike(f"%{search}%")
-                )
-    
-            # Пагинация
+
+            stmt = select(SparePart).order_by(SparePart.id.desc())
             offset = (page - 1) * per_page
     
-            stmt = (
-                stmt
-                .order_by(SparePart.id)
-                .offset(offset)
-                .limit(per_page)
-            )
+            if search:
+                
+                search_value = search.casefold()
+                parts = self._session.execute(stmt).scalars().all()
+                parts = [
+                    part
+                    for part in parts
+                    if any(
+                        search_value in (value or "").casefold()
+                        for value in (part.name, part.sku, part.part_id)
+                    )
+                ]
+                return parts[offset:offset + per_page]
     
-            result = self._session.execute(stmt)
+            result = self._session.execute(
+                stmt.offset(offset).limit(per_page)
+            )
     
             return result.scalars().all()
         

@@ -1,5 +1,20 @@
+from datetime import datetime
+
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QHeaderView, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QHeaderView,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
+
+from helpers.excel_export import export_rows_to_excel
 
 
 class ResultTable(QWidget):
@@ -26,6 +41,9 @@ class ResultTable(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.cellClicked.connect(self.on_cell_clicked)
 
+        self.export_button = QPushButton("Экспортировать в Excel", self)
+        self.export_button.clicked.connect(self.export_to_excel)
+        self.export_button.setVisible(False)
 
         self.empty_label = QLabel("Пока нет товаров, загрузите файл для расчета")
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -36,6 +54,7 @@ class ResultTable(QWidget):
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)
         layout.addWidget(self.table)
+        layout.addWidget(self.export_button)
         layout.addWidget(self.empty_label)
         self.setLayout(layout)
         self._show_empty_state()
@@ -44,6 +63,7 @@ class ResultTable(QWidget):
 
     def handle_loading(self,is_loading:bool):
         if is_loading:
+            self.export_button.setVisible(False)
             self._show_empty_state("Загрузка...")
         else:
             self._hide_empty_state()
@@ -71,10 +91,12 @@ class ResultTable(QWidget):
 
     def handle_signal(self, products: list[dict]):
         if not products:
+            self.export_button.setVisible(False)
             self._show_empty_state("Нет товаров")
             self.table.setRowCount(0)
             return
         self._hide_empty_state()
+        self.export_button.setVisible(True)
 
         self.table.setRowCount(len(products))
         self.table.setColumnCount(len(self.keys))
@@ -86,3 +108,39 @@ class ResultTable(QWidget):
                 self.table.setItem(row_idx, col_idx, item)
 
         self._resize_to_contents()
+
+    def export_to_excel(self):
+        if self.table.rowCount() == 0:
+            return
+
+        default_name = datetime.now().strftime("marine_star_export_%Y-%m-%d_%H-%M-%S.xlsx")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить таблицу Excel",
+            default_name,
+            "Excel файлы (*.xlsx)",
+        )
+        if not file_path:
+            return
+
+        rows = [
+            [
+                self.table.item(row, column).text()
+                if self.table.item(row, column) is not None
+                else ""
+                for column in range(self.table.columnCount())
+            ]
+            for row in range(self.table.rowCount())
+        ]
+
+        try:
+            output_path = export_rows_to_excel(self.headers, rows, file_path)
+        except Exception as error:  # noqa: BLE001
+            QMessageBox.critical(self, "Ошибка экспорта", str(error))
+            return
+
+        QMessageBox.information(
+            self,
+            "Экспорт завершён",
+            f"Файл сохранен в {output_path}",
+        )

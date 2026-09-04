@@ -8,9 +8,11 @@ from service.parts_service import PartsService
 
 class ProductUpload(QWidget):
     productsLoaded = Signal(list)
+
     def __init__(self):
         super().__init__()
         self.loader = None
+        self._records = []
         self.parts_service = PartsService()
         layout = QVBoxLayout()
 
@@ -33,8 +35,6 @@ class ProductUpload(QWidget):
         btn_layout.addStretch()
         layout.addLayout(btn_layout)
 
-        layout.addWidget(self.upload_btn)
-
         self.setLayout(layout)
 
     def open_file_dialog(self):
@@ -52,12 +52,14 @@ class ProductUpload(QWidget):
             
     def handle_load(self,records:list):
         print("Loading files...")
+        self._records = records
         self.parts_service.upload_parts_async(
             records,
             on_success=self._on_parts_upload,
             on_error=self._on_upload_error,
         )
-    def _on_parts_upload(self):
+    def _on_parts_upload(self, _result=None):
+        self.productsLoaded.emit(self._records)
         QMessageBox.information(self,"Товары загружены","товары загружены")
     def _on_upload_error(self,error: Exception):
         QMessageBox.critical(self, "Ошибка", str(error))

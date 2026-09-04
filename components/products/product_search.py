@@ -17,7 +17,7 @@ class ProductSearch(QWidget):
         self.debounce_timer.setInterval(500)
 
         self.text_input = QLineEdit(self)
-        self.text_input.setPlaceholderText("Начните поиск...")
+        self.text_input.setPlaceholderText("Поиск по названию, SKU или номеру детали...")
         self.text_input.setStyleSheet("""
             QLineEdit {
                 padding: 6px 16px;
@@ -37,10 +37,14 @@ class ProductSearch(QWidget):
         """)
 
         self.debounce_timer.timeout.connect(self.apply_search)
+        self.text_input.textChanged.connect(self._start_search_timer)
 
         layout = QVBoxLayout()
         layout.addWidget(self.text_input)
         self.setLayout(layout)
+
+    def _start_search_timer(self, _text: str) -> None:
+        self.debounce_timer.start()
 
     def apply_search(self):
         text = self.text_input.text()

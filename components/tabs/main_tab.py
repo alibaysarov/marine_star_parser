@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QVBoxLayout
 
-from components.input import InputComponent
+from components.main.input import InputComponent
 from components.tab_widget import CustomTab
-from components.table import ResultTable
+from components.main.table import ResultTable
 
 
 class MainTab(CustomTab):

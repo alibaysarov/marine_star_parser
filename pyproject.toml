@@ -12,6 +12,7 @@ dependencies = [
     "pandas>=2.3.3",
     "pdfplumber>=0.11.10",
     "pyside6>=6.11.2",
+    "python-calamine>=0.8.2",
     "sqlalchemy>=2.0.52",
 ]
 

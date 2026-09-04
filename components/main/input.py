@@ -4,7 +4,7 @@ from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QLineEdit, QPushButton, QSizePolicy, QWidget,QVBoxLayout,QLabel
 from PySide6.QtGui import QIntValidator
 
-from components.file_uploader import FileUploaderWidget
+from components.main.file_uploader import FileUploaderWidget
 
 class InputComponent(QWidget):
     productsLoaded = Signal(list)
