@@ -45,6 +45,18 @@ class PartsRepository:
     def get_by_id(self, part_id: int) -> SparePart | None:
         return self._session.get(SparePart, part_id)
 
+    def get_parts_by_part_ids(self, part_ids: list[str]) -> dict[str, tuple[str, int | None]]:
+        if not part_ids:
+            return {}
+
+        stmt = select(SparePart.part_id, SparePart.name, SparePart.part_weight).where(
+            SparePart.part_id.in_(part_ids)
+        )
+        return {
+            part_id: (name, part_weight)
+            for part_id, name, part_weight in self._session.execute(stmt).all()
+        }
+
     def add(self, part: SparePart) -> SparePart:
         self._session.add(part)
         self._session.commit()

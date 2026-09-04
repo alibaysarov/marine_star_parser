@@ -25,8 +25,24 @@ class ResultTable(QWidget):
     def initUI(self):
         self.table = QTableWidget()
 
-        self.headers = ["№", "ID", "Название", "Кол-во", "Цена", "Цена за штуку (с маржой)"]
-        self.keys = ["col_0", "col_2", "col_5", "col_10", "col_20", "marge_price"]
+        self.headers = [
+            "№",
+            "ID",
+            "Название",
+            "Вес (гр.)",
+            "Кол-во",
+            "Цена",
+            "Цена за штуку (с маржой)",
+        ]
+        self.keys = [
+            "col_0",
+            "col_2",
+            "col_5",
+            "part_weight",
+            "col_10",
+            "col_20",
+            "marge_price",
+        ]
 
         self.table.setColumnCount(len(self.headers))
         self.table.setHorizontalHeaderLabels(self.headers)

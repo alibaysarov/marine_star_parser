@@ -4,7 +4,9 @@ from decimal import Decimal
 import pandas as pd
 import pdfplumber
 
+from db.session import SessionLocal
 from exceptions.exceptions import InvalidArgumentError, TableNotFoundError
+from repository import PartsRepository
 
 from .translate import get_translated_results
 
@@ -61,6 +63,24 @@ def update_product_price(products: list[dict], margin: int) -> list[dict]:
     return new_products
 
 
+def resolve_product_names(records: list[dict]) -> list[dict]:
+    part_ids = [record["col_0"] for record in records]
+    with SessionLocal() as session:
+        parts_by_part_id = PartsRepository(session).get_parts_by_part_ids(part_ids)
+
+    missing_records = []
+    for record in records:
+        part_id = record["col_0"]
+        part = parts_by_part_id.get(part_id)
+        if part is not None:
+            record["col_5"] = part[0]
+            record["part_weight"] = part[1] if part[1] is not None else "-"
+        else:
+            record["part_weight"] = "-"
+            missing_records.append(record)
+    return missing_records
+
+
 def calculate_products_from_file(path: str, margin: int) -> list[dict]:
     records = []
     with pdfplumber.open(path) as pdf:
@@ -87,8 +107,10 @@ def calculate_products_from_file(path: str, margin: int) -> list[dict]:
 
             records = [process_values(record, margin) for record in records]
 
-            names = [record["col_5"] for record in records]
-            translated_names = get_translated_results(names)
-            for record, translated in zip(records, translated_names):
-                record["col_5"] = translated
+            missing_records = resolve_product_names(records)
+            if missing_records:
+                names = [record["col_5"] for record in missing_records]
+                translated_names = get_translated_results(names)
+                for record, translated in zip(missing_records, translated_names):
+                    record["col_5"] = translated
     return records

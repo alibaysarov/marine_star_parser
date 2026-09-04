@@ -45,6 +45,16 @@ def test_get_all_searches_all_fields_case_insensitively(session):
     assert [part.part_id for part in repository.get_all(search="p-001")] == ["P-001"]
 
 
+def test_get_parts_by_part_ids_returns_names_and_weights(session):
+    seed_parts(session)
+    repository = PartsRepository(session)
+
+    assert repository.get_parts_by_part_ids(["P-002", "P-404", "P-001"]) == {
+        "P-001": ("Цепь", 10),
+        "P-002": ("Прокладка", 20),
+    }
+
+
 def test_repository_crud_and_upsert(session):
     repository = PartsRepository(session)
     part = repository.add(
