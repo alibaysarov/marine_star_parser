@@ -8,6 +8,7 @@ import pandas as pd
 
 class ProductsLoader(QObject):
     all_done = Signal(list)   # финальный список dict-ов (records)
+    error = Signal(Exception)
 
     def __init__(self, file_path: str, parent=None):
         super().__init__(parent)
@@ -18,11 +19,16 @@ class ProductsLoader(QObject):
         self.total_sheets = 0
 
     def start(self):
-        if not os.path.exists(self.file_path):
-            raise FileNotFoundError(f"Файл не найден: {self.file_path}")
+        try:
+            if not os.path.exists(self.file_path):
+                raise FileNotFoundError(f"Файл не найден: {self.file_path}")
 
-        excel_file = pd.ExcelFile(self.file_path)
-        sheets = excel_file.sheet_names
+            excel_file = pd.ExcelFile(self.file_path)
+            sheets = excel_file.sheet_names
+        except Exception as error:
+            self.error.emit(error)
+            return
+
         self.total_sheets = len(sheets)
 
         for sheet in sheets:
@@ -42,6 +48,12 @@ class ProductsLoader(QObject):
 
     def _check_complete(self):
         if len(self.results) + len(self.errors) == self.total_sheets:
+            if not self.results:
+                self.error.emit(
+                    RuntimeError("Не удалось прочитать ни одного листа файла")
+                )
+                return
+
             merged = pd.concat(self.results.values(), ignore_index=True)
             # records = merged.to_dict("records")
             # records = [

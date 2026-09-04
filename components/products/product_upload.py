@@ -8,6 +8,7 @@ from service.parts_service import PartsService
 
 class ProductUpload(QWidget):
     productsLoaded = Signal(list)
+    is_loading = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -46,9 +47,15 @@ class ProductUpload(QWidget):
         self.file_label.setText(selected_file)
         if selected_file:
             print("File is ",selected_file)
+            self.is_loading.emit(True)
             self.loader = ProductsLoader(self.file_path)
             self.loader.all_done.connect(self.handle_load)
-            self.loader.start()
+            self.loader.error.connect(self._on_upload_error)
+            try:
+                self.loader.start()
+            except Exception as error:
+                self.is_loading.emit(False)
+                self._on_upload_error(error)
             
     def handle_load(self,records:list):
         print("Loading files...")
@@ -59,7 +66,9 @@ class ProductUpload(QWidget):
             on_error=self._on_upload_error,
         )
     def _on_parts_upload(self, _result=None):
+        self.is_loading.emit(False)
         self.productsLoaded.emit(self._records)
         QMessageBox.information(self,"Товары загружены","товары загружены")
     def _on_upload_error(self,error: Exception):
+        self.is_loading.emit(False)
         QMessageBox.critical(self, "Ошибка", str(error))
