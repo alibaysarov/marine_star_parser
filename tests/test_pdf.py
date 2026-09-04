@@ -5,7 +5,7 @@ from pdf_parser.parse import calculate_products_from_file
 
 
 def test_get_all_items_needed():
-    test_path = "files/test_file.pdf"
+    test_path = "files/test_file.PDF"
     records = calculate_products_from_file(test_path, 22)
     expected = 7
     assert len(records) == expected

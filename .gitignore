@@ -97,3 +97,7 @@ desktop.ini
 # Project-specific
 # =====================================
 data/
+
+# PDF fixtures used by unit tests
+!files/test_file.PDF
+!files/empty_pdf.pdf
