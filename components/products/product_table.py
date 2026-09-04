@@ -83,7 +83,9 @@ class ProductTable(QWidget):
             for column, value in enumerate(values):
                 item = QTableWidgetItem(str(value))
                 if column in (0, 4):
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                    item.setTextAlignment(
+                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                    )
                 self.table.setItem(row, column, item)
 
         self.page_label.setText(f"Страница {self.page}")

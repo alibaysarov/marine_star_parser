@@ -1,13 +1,13 @@
-import math
 import os
 
+import pandas as pd
 from PySide6.QtCore import QObject, QThreadPool, Signal
 
 from .sheet_worker import SheetWorker
-import pandas as pd
+
 
 class ProductsLoader(QObject):
-    all_done = Signal(list)   # финальный список dict-ов (records)
+    all_done = Signal(list)  # финальный список dict-ов (records)
     error = Signal(Exception)
 
     def __init__(self, file_path: str, parent=None):
@@ -42,16 +42,14 @@ class ProductsLoader(QObject):
         self._check_complete()
 
     def _on_sheet_error(self, sheet_name, msg):
-        print("Error",msg)
+        print("Error", msg)
         self.errors[sheet_name] = msg
         self._check_complete()
 
     def _check_complete(self):
         if len(self.results) + len(self.errors) == self.total_sheets:
             if not self.results:
-                self.error.emit(
-                    RuntimeError("Не удалось прочитать ни одного листа файла")
-                )
+                self.error.emit(RuntimeError("Не удалось прочитать ни одного листа файла"))
                 return
 
             merged = pd.concat(self.results.values(), ignore_index=True)
@@ -66,10 +64,10 @@ class ProductsLoader(QObject):
             # ]
 
             records = self.__merge_records(merged)
-            
+
             self.all_done.emit(records)
 
-    def __merge_records(self,merged):
+    def __merge_records(self, merged):
         merged["part_weight"] = merged["weight_g"].fillna(0).astype(int)
         merged["sku"] = merged["PNUS"].fillna("").astype(str)
         merged["part_id"] = merged["номер"].fillna("").astype(str)

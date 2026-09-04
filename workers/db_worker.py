@@ -1,11 +1,12 @@
 # workers/db_worker.py
 from typing import Any, Callable
+
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
 
 class WorkerSignals(QObject):
-    finished = Signal(object)   # результат функции
-    error = Signal(Exception)   # исключение, если случилось
+    finished = Signal(object)  # результат функции
+    error = Signal(Exception)  # исключение, если случилось
 
 
 class DbWorker(QRunnable):

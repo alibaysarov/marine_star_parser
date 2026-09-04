@@ -1,3 +1,3 @@
-from .tab_widget import TabWidget,CustomTab
+from .tab_widget import CustomTab, TabWidget
 
-__all__ = ["TabWidget","CustomTab"]
+__all__ = ["TabWidget", "CustomTab"]

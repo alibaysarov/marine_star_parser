@@ -1,9 +1,17 @@
-from PySide6.QtWidgets import QHBoxLayout, QWidget, QPushButton, QVBoxLayout, QLabel, QFileDialog,QSizePolicy
-from PySide6.QtCore import QObject, QThread, Qt, Signal
+from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
+
 from components.labels.toast import Toast, ToastType
 from exceptions.exceptions import TableNotFoundError
 from pdf_parser.parse import calculate_products_from_file, update_product_price
-
 
 
 class ProductWorker(QObject):
@@ -32,14 +40,15 @@ class FileUploaderWidget(QWidget):
     productsLoaded = Signal(list)
     marginChanged = Signal(int)
     is_loading = Signal(bool)
+
     def __init__(self):
         super().__init__()
         self.initUI()
 
-    def handle_margin(self,margin:int):
+    def handle_margin(self, margin: int):
         self.margin = margin
         print("Margin handled")
-        self.update_products(False,"Маржа обновлена!")
+        self.update_products(False, "Маржа обновлена!")
 
     def initUI(self):
         self.file_path = ""
@@ -52,7 +61,7 @@ class FileUploaderWidget(QWidget):
         layout = QVBoxLayout()
 
         # Create a label to display the selected file path
-        self.file_label = QLabel('Файл не выбран', self)
+        self.file_label = QLabel("Файл не выбран", self)
         self.file_label.setStyleSheet("""
             padding:5px 20px;
             padding-left:0px;
@@ -62,12 +71,12 @@ class FileUploaderWidget(QWidget):
         layout.addWidget(self.file_label)
 
         # Create the upload button
-        self.upload_btn = QPushButton('Загрузить файл', self)
+        self.upload_btn = QPushButton("Загрузить файл", self)
         # Connect the button click event to the file picker function
         self.upload_btn.clicked.connect(self.open_file_dialog)
 
         self.upload_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        
+
         btn_layout = QHBoxLayout()
         btn_layout.addWidget(self.upload_btn)
         btn_layout.addStretch()
@@ -80,13 +89,15 @@ class FileUploaderWidget(QWidget):
 
     def open_file_dialog(self):
         self.file_path, _ = QFileDialog.getOpenFileName(
-            self, "Select File to Upload", "",
-            "All Files (*);;Text Files (*.txt);;Python Files (*.py)"
+            self,
+            "Select File to Upload",
+            "",
+            "All Files (*);;Text Files (*.txt);;Python Files (*.py)",
         )
         if self.file_path:
             self.file_label.setText(f"Selected File:\n{self.file_path.split('/')[-1]}")
             self.update_products(True)
-                
+
     def update_products(self, need_translation=True, notification_message="Товары загружены"):
         if not self.file_path:
             return
@@ -96,8 +107,7 @@ class FileUploaderWidget(QWidget):
 
         self._thread = QThread()
         self._worker = ProductWorker(
-            self.file_path, self.margin, need_translation,
-            getattr(self, "products", None)
+            self.file_path, self.margin, need_translation, getattr(self, "products", None)
         )
         self._worker.moveToThread(self._thread)
 
@@ -113,7 +123,7 @@ class FileUploaderWidget(QWidget):
         self._thread.finished.connect(self._thread.deleteLater)
 
         self._thread.start()
-    
+
     def _on_success(self, products):
         self.products = products
         self.is_loading.emit(False)
@@ -130,4 +140,3 @@ class FileUploaderWidget(QWidget):
 
     def show_notification(self, message: str, duration_ms: int = 3000):
         Toast(self.window(), message, duration_ms, type=ToastType.INFO)
-        

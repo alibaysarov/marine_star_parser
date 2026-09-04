@@ -1,7 +1,15 @@
-from PySide6.QtWidgets import QLabel, QWidget, QGraphicsOpacityEffect
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QPoint, QEasingCurve, QParallelAnimationGroup
-from PySide6.QtGui import QPainter, QColor, QPainterPath
 from enum import Enum
+
+from PySide6.QtCore import (
+    QEasingCurve,
+    QParallelAnimationGroup,
+    QPoint,
+    QPropertyAnimation,
+    Qt,
+    QTimer,
+)
+from PySide6.QtGui import QColor, QPainter, QPainterPath
+from PySide6.QtWidgets import QGraphicsOpacityEffect, QLabel, QWidget
 
 
 class ToastType(Enum):
@@ -11,7 +19,13 @@ class ToastType(Enum):
 
 
 class Toast(QLabel):
-    def __init__(self, parent: QWidget, message: str, duration_ms: int = 3000, type: ToastType = ToastType.INFO):
+    def __init__(
+        self,
+        parent: QWidget,
+        message: str,
+        duration_ms: int = 3000,
+        type: ToastType = ToastType.INFO,
+    ):
         super().__init__(parent)  # обычный child-виджет, без window flags
         self.setText(message)
         self.setWordWrap(True)
@@ -38,7 +52,7 @@ class Toast(QLabel):
 
         self._compute_positions()
         self.move(self.start_pos)
-        self.raise_()   # поверх остальных детей в родителе
+        self.raise_()  # поверх остальных детей в родителе
         self.show()
 
         self._slide_in()

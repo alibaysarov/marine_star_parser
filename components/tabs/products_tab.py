@@ -1,5 +1,3 @@
-
-
 from PySide6.QtWidgets import QVBoxLayout
 
 from components import CustomTab
@@ -10,7 +8,6 @@ from components.products.product_upload import ProductUpload
 
 
 class ProductsTab(CustomTab):
-
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -34,6 +31,6 @@ class ProductsTab(CustomTab):
 
     def _on_products_loaded(self, _records: list) -> None:
         self.product_table.refresh()
-        
+
     def get_name(self) -> str:
         return "Номенклатура"

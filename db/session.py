@@ -1,7 +1,7 @@
 from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db.base import Base
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # корень проекта
 DB_PATH = BASE_DIR / "data" / "app.db"

@@ -1,11 +1,10 @@
-import sys
 import os
+import sys
 from pathlib import Path
+
 from PySide6.QtWidgets import QApplication
 
 from window import MainWindow
-
-
 
 
 def _setup_argos_data_dir() -> None:
@@ -31,6 +30,7 @@ def _setup_argos_data_dir() -> None:
     data_dir = base / "MarineParser"
     data_dir.mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("XDG_DATA_HOME", str(data_dir))
+
 
 _setup_argos_data_dir()
 

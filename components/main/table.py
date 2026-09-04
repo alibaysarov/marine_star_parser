@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
     QHeaderView,
@@ -22,12 +22,11 @@ class ResultTable(QWidget):
         super().__init__()
         self.initUI()
 
-    
     def initUI(self):
         self.table = QTableWidget()
 
-        self.headers = ["№", "ID", "Название", "Кол-во", "Цена","Цена за штуку (с маржой)"]
-        self.keys    = ["col_0", "col_2", "col_5", "col_10", "col_20","marge_price"]
+        self.headers = ["№", "ID", "Название", "Кол-во", "Цена", "Цена за штуку (с маржой)"]
+        self.keys = ["col_0", "col_2", "col_5", "col_10", "col_20", "marge_price"]
 
         self.table.setColumnCount(len(self.headers))
         self.table.setHorizontalHeaderLabels(self.headers)
@@ -59,24 +58,22 @@ class ResultTable(QWidget):
         self.setLayout(layout)
         self._show_empty_state()
 
-
-
-    def handle_loading(self,is_loading:bool):
+    def handle_loading(self, is_loading: bool):
         if is_loading:
             self.export_button.setVisible(False)
             self._show_empty_state("Загрузка...")
         else:
             self._hide_empty_state()
-        
+
     def _show_empty_state(self, text="Пока нет товаров, загрузите файл для расчета"):
         self.empty_label.setText(text)
         self.empty_label.setVisible(True)
         self.table.setVisible(False)
-    
+
     def _hide_empty_state(self):
         self.empty_label.setVisible(False)
         self.table.setVisible(True)
-        
+
     def _resize_to_contents(self):
         header_height = self.table.horizontalHeader().height()
         rows_height = sum(self.table.rowHeight(r) for r in range(self.table.rowCount()))

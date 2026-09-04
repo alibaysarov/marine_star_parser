@@ -5,57 +5,63 @@ import pandas as pd
 import pdfplumber
 
 from exceptions.exceptions import InvalidArgumentError, TableNotFoundError
+
 from .translate import get_translated_results
 
-ARABIC_PATTERN = re.compile(
-    r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]'
-)
+ARABIC_PATTERN = re.compile(r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]")
 
-TOTAL_PRICE = 'col_20'
-MARGE_PRICE = 'marge_price'
-QTY ='col_10'
+TOTAL_PRICE = "col_20"
+MARGE_PRICE = "marge_price"
+QTY = "col_10"
+
+
 def sanitize_arabic(input: dict) -> dict:
     for key, value in input.items():
         if isinstance(value, str):
-            input[key] = ARABIC_PATTERN.sub('', value).strip()
+            input[key] = ARABIC_PATTERN.sub("", value).strip()
     return input
 
-def get_price(input:dict,margin:int)->dict:
+
+def get_price(input: dict, margin: int) -> dict:
     amount = Decimal(input[TOTAL_PRICE])
-    qty = input.get(QTY,0)
-    unit_price = get_unit_price(amount,int(qty))
-    result_price = add_margin(unit_price,margin)
-    input[MARGE_PRICE] =round(result_price,2) 
+    qty = input.get(QTY, 0)
+    unit_price = get_unit_price(amount, int(qty))
+    result_price = add_margin(unit_price, margin)
+    input[MARGE_PRICE] = round(result_price, 2)
     return input
 
-def get_unit_price(amount:Decimal,qty:int)->Decimal:
-    if qty <=0:
+
+def get_unit_price(amount: Decimal, qty: int) -> Decimal:
+    if qty <= 0:
         raise InvalidArgumentError("Кол-во не может быть меньше 0 или равным 0")
-    return amount/qty
-    
-def add_margin(input_price:Decimal,margin:int)->Decimal:
-    if margin <0:
+    return amount / qty
+
+
+def add_margin(input_price: Decimal, margin: int) -> Decimal:
+    if margin < 0:
         raise InvalidArgumentError("Маржа не может быть равна 0")
-    k = (100+margin) / 100
+    k = (100 + margin) / 100
     k = Decimal(k)
     result = Decimal(input_price * k)
     return result
-    
-def process_values(input:dict,margin:int)->dict:
+
+
+def process_values(input: dict, margin: int) -> dict:
     input = sanitize_arabic(input)
-    input = get_price(input,margin)
-    
+    input = get_price(input, margin)
+
     return input
 
 
-def update_product_price(products:list[dict],margin:int)->list[dict]:
+def update_product_price(products: list[dict], margin: int) -> list[dict]:
     """
     Берет старые продукты и обновляет цену без перевода названия
     """
-    new_products = [process_values(product,margin) for product in products]
+    new_products = [process_values(product, margin) for product in products]
     return new_products
 
-def calculate_products_from_file(path:str,margin:int)->list[dict]:
+
+def calculate_products_from_file(path: str, margin: int) -> list[dict]:
     records = []
     with pdfplumber.open(path) as pdf:
         first_page = pdf.pages[0]
@@ -69,18 +75,20 @@ def calculate_products_from_file(path:str,margin:int)->list[dict]:
             df = pd.DataFrame(rows[column_start:], columns=headers)
 
             df.columns = [f"col_{i}" for i in range(len(df.columns))]
-            pd.set_option('display.max_columns', None)
-            pd.set_option('display.width', 200)
+            pd.set_option("display.max_columns", None)
+            pd.set_option("display.width", 200)
 
-            target_table =df[['col_0','col_2','col_5','col_10','col_20']]
-            last_item_mask = target_table['col_0'].str.lower().str.contains("invoice value", na=False)
+            target_table = df[["col_0", "col_2", "col_5", "col_10", "col_20"]]
+            last_item_mask = (
+                target_table["col_0"].str.lower().str.contains("invoice value", na=False)
+            )
             df_filtered = target_table[~last_item_mask.cummax()]
-            records = df_filtered.to_dict('records')
+            records = df_filtered.to_dict("records")
 
-            records = [process_values(record,margin) for record in records]
+            records = [process_values(record, margin) for record in records]
 
-            names = [record['col_5'] for record in records]
+            names = [record["col_5"] for record in records]
             translated_names = get_translated_results(names)
             for record, translated in zip(records, translated_names):
-                record['col_5'] = translated
+                record["col_5"] = translated
     return records

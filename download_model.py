@@ -1,5 +1,6 @@
-import argostranslate.package
 from pathlib import Path
+
+import argostranslate.package
 
 MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
@@ -14,8 +15,7 @@ available_packages = argostranslate.package.get_available_packages()
 package_to_install = next(
     package
     for package in available_packages
-    if package.from_code == from_code
-    and package.to_code == to_code
+    if package.from_code == from_code and package.to_code == to_code
 )
 
 downloaded_path = package_to_install.download()

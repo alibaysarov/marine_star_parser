@@ -1,18 +1,15 @@
-
-
 from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QLineEdit, QVBoxLayout, QWidget
 
 
 class ProductSearch(QWidget):
-
     searchStarted = Signal(str)
-    
+
     def __init__(self):
         super().__init__()
 
         self.debounce_timer = QTimer()
-        
+
         self.debounce_timer.setSingleShot(True)
         self.debounce_timer.setInterval(500)
 

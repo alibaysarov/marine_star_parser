@@ -1,9 +1,9 @@
-import os
 import asyncio
+import os
 from pathlib import Path
 
-import argostranslate.translate
 import argostranslate.package
+import argostranslate.translate
 from googletrans import Translator as GoogleTranslator
 
 # argostranslate использует Path.home() для data_dir, а C:\Users\Али
@@ -11,11 +11,7 @@ from googletrans import Translator as GoogleTranslator
 # Переопределяем через официальную переменную XDG_DATA_HOME на ASCII-путь.
 os.environ.setdefault("XDG_DATA_HOME", "C:/argos_data")
 
-MODEL_PATH = (
-    Path(__file__).parent.parent
-    / "models"
-    / "translate-en_ru.argosmodel"
-)
+MODEL_PATH = Path(__file__).parent.parent / "models" / "translate-en_ru.argosmodel"
 
 _translation_ready = False
 
@@ -24,9 +20,7 @@ def install_model():
     global _translation_ready
     if _translation_ready:
         return
-    installed_codes = {
-        lang.code for lang in argostranslate.translate.get_installed_languages()
-    }
+    installed_codes = {lang.code for lang in argostranslate.translate.get_installed_languages()}
     if "en" not in installed_codes or "ru" not in installed_codes:
         argostranslate.package.install_from_path(MODEL_PATH)
     _translation_ready = True

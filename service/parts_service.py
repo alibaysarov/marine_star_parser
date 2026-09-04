@@ -1,6 +1,5 @@
 # services/parts_service.py
 
-from itertools import batched
 
 from PySide6.QtCore import QThreadPool
 
@@ -34,7 +33,7 @@ class PartsService:
         # Отдельная SQLite-сессия внутри фонового потока
         with SessionLocal() as session:
             repo = PartsRepository(session)
-            
+
             return repo.batch_import(products)
 
     def upload_parts_async(

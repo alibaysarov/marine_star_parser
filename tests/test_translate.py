@@ -1,20 +1,17 @@
 import asyncio
+
 import pytest
 
-from pdf_parser import get_translated_result
 from pdf_parser.translate import (
-    install_model,
-    get_translated_results,
-    translate_batch_async,
     _argos_translate_batch,
+    get_translated_results,
+    install_model,
 )
 
 
 @pytest.fixture(autouse=True, scope="session")
 def setup_translation_model():
     install_model()
-
-
 
 
 def test_translate_batch_preserves_order_and_count():
