@@ -8,7 +8,7 @@ from components.main.file_uploader import FileUploaderWidget
 
 
 class InputComponent(QWidget):
-    productsLoaded = Signal(list)
+    productsLoaded = Signal(object)
     marginInputChanged = Signal(int)
 
     def __init__(self):

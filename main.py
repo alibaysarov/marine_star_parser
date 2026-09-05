@@ -8,6 +8,7 @@ import db.models  # noqa: F401
 from app_logging import configure_logging
 from db.base import Base
 from db.session import engine
+from pdf_parser.parse import calculate_products_from_file
 from window import MainWindow
 
 
@@ -50,3 +51,5 @@ def boot():
 
 if __name__ == "__main__":
     boot()
+    # file_path = "files/test2.pdf"
+    # records = calculate_products_from_file(file_path,25)

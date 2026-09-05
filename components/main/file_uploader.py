@@ -16,7 +16,7 @@ from pdf_parser.parse import calculate_products_from_file, update_product_price
 
 
 class ProductWorker(QObject):
-    finished = Signal(list)
+    finished = Signal(object)
     error = Signal(Exception)
 
     def __init__(self, file_path, margin, need_translation, products=None):
@@ -31,7 +31,8 @@ class ProductWorker(QObject):
             if self.need_translation:
                 result = calculate_products_from_file(self.file_path, self.margin)
             else:
-                result = update_product_price(self.products if self.products else [], self.margin)
+                products = self.products if self.products is not None else []
+                result = update_product_price(products, self.margin)
             self.finished.emit(result)
         except Exception as e:
             logger.exception("Ошибка обработки PDF: %s", self.file_path)
@@ -39,7 +40,7 @@ class ProductWorker(QObject):
 
 
 class FileUploaderWidget(QWidget):
-    productsLoaded = Signal(list)
+    productsLoaded = Signal(object)
     marginChanged = Signal(int)
     is_loading = Signal(bool)
 
@@ -55,6 +56,7 @@ class FileUploaderWidget(QWidget):
     def initUI(self):
         self.file_path = ""
         self.margin = 0
+        self.products = None
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         # Set up window properties
         self.setGeometry(100, 100, 400, 200)
@@ -109,7 +111,10 @@ class FileUploaderWidget(QWidget):
 
         self._thread = QThread()
         self._worker = ProductWorker(
-            self.file_path, self.margin, need_translation, getattr(self, "products", None)
+            self.file_path,
+            self.margin,
+            need_translation,
+            self.products if self.products is not None else [],
         )
         self._worker.moveToThread(self._thread)
 
