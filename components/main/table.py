@@ -34,6 +34,7 @@ class ResultTable(QWidget):
             "qty",
             "final_total",
             "unit_price",
+            "marge",
         ]
         self.headers = [
             "№ Запчасти",
@@ -43,6 +44,7 @@ class ResultTable(QWidget):
             "Кол-во",
             "Итого",
             "Цена за ед. с маржой",
+            "% Маржи",
         ]
 
         self.table.setColumnCount(len(self.headers))

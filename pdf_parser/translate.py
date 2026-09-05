@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-from googletrans import Translator
+from googletrans import Translator as GoogleTranslator
 
 # Эти переменные должны быть заданы до импорта argostranslate: его settings
 # вычисляет каталоги пакетов во время импорта модуля.
@@ -49,7 +49,7 @@ async def translate_batch_async(texts: list[str]) -> dict[str, str]:
     if not texts:
         return {}
     try:
-        async with Translator() as translator:
+        async with GoogleTranslator() as translator:
             results = await translator.translate(texts, src="en", dest="ru")
 
         logger.info("Переведено %d строк через Google Translate", len(texts))

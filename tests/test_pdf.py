@@ -50,8 +50,14 @@ def test_resolve_product_names_uses_database_and_returns_missing(monkeypatch):
 
 
 def test_calculate_does_not_translate_when_all_names_are_in_database(monkeypatch):
-    records = [{"col_0": "P-001", "col_5": "CHAIN"}]
-    monkeypatch.setattr(parse, "resolve_product_names", lambda records: [])
+    records = [{"part_no": "P-001", "description": "CHAIN"}]
+
+    def resolve_names(df):
+        df["translated"] = "CHAIN"
+        df["part_weight"] = 10
+        return df, df["part_no"].eq("__missing__")
+
+    monkeypatch.setattr(parse, "resolve_product_names_pd", resolve_names)
 
     def fail_translation(names):
         raise AssertionError("translation should not be called")
@@ -60,7 +66,7 @@ def test_calculate_does_not_translate_when_all_names_are_in_database(monkeypatch
     monkeypatch.setattr(parse.pdfplumber, "open", lambda path: FakePdf(records))
 
     result = calculate_products_from_file("test.pdf", 22)
-    assert result[0]["col_5"] == "CHAIN"
+    assert result.loc[0, "translated"] == "CHAIN"
 
 
 class FakePdf:
@@ -115,3 +121,7 @@ class FakePage:
         row[20] = "100"
         rows.append(row)
         return rows
+
+    def extract_tables(self):
+        row = ["1", "BRAND", "P-001", "CHAIN", "100", "1", "100", "0", "100", "5", "5", "100"]
+        return [[row]]

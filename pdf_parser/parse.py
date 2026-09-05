@@ -62,6 +62,7 @@ def get_price(input: dict, margin: int) -> dict:
     unit_price = get_unit_price(amount, int(qty))
     result_price = add_margin(unit_price, margin)
     input[MARGE_PRICE] = round(result_price, 2)
+    input["marge"] = margin
     return input
 
 
@@ -97,6 +98,7 @@ def update_product_price(
         products = products.copy()
         k = (100 + margin) / 100
         products["unit_price"] = round(k * products["final_total"] / products["qty"], 2)
+        products["marge"] = margin
         return products
 
     new_products = [process_values(product, margin) for product in products]
@@ -223,6 +225,7 @@ def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
         if missing.any():
             print("Есть записи без совпадения в БД")
             df = translate_missing(df)
+        df["marge"] = 0
         return df[
             [
                 "part_no",
@@ -232,5 +235,6 @@ def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
                 "part_weight",
                 "qty",
                 "unit_price",
+                "marge",
             ]
         ]
