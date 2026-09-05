@@ -2,6 +2,12 @@ start:
 	set MARINE_PARSER_CONSOLE=1&& uv run python main.py
 test:
 	uv run pytest
+format:
+	uv run ruff format .
+lint:
+	uv run ruff check .
+install-hooks:
+	uv run pre-commit install
 build: build-windows
 prepare-ssl:
 	uv run python -c "from pathlib import Path; import shutil, sys; source = Path(sys.base_prefix) / 'DLLs'; target = Path('build/ssl'); target.mkdir(parents=True, exist_ok=True); [shutil.copy2(source / name, target / name) for name in ('_ssl.pyd', 'libcrypto-3-x64.dll', 'libssl-3-x64.dll')]"

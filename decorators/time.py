@@ -1,7 +1,7 @@
-import time
-import functools
 import asyncio
-from typing import Any, Callable, TypeVar, ParamSpec, Awaitable
+import functools
+import time
+from typing import Callable, ParamSpec, TypeVar
 
 P = ParamSpec("P")
 T = TypeVar("T")

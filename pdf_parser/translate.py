@@ -3,6 +3,8 @@ import os
 import sys
 from pathlib import Path
 
+from googletrans import Translator
+
 # Эти переменные должны быть заданы до импорта argostranslate: его settings
 # вычисляет каталоги пакетов во время импорта модуля.
 ARGOS_DATA_DIR = Path(os.environ.get("PROGRAMDATA", "C:/ProgramData")) / "MarineParser"
@@ -11,7 +13,6 @@ os.environ.setdefault("ARGOS_PACKAGES_DIR", str(ARGOS_DATA_DIR / "argos-translat
 
 import argostranslate.package  # noqa: E402
 import argostranslate.translate  # noqa: E402
-from googletrans import Translator as GoogleTranslator  # noqa: E402
 
 from app_logging import logger  # noqa: E402
 
@@ -48,8 +49,9 @@ async def translate_batch_async(texts: list[str]) -> dict[str, str]:
     if not texts:
         return {}
     try:
-        async with GoogleTranslator() as translator:
+        async with Translator() as translator:
             results = await translator.translate(texts, src="en", dest="ru")
+
         logger.info("Переведено %d строк через Google Translate", len(texts))
         return {f"key_{result.origin}": result.text for result in results}
 

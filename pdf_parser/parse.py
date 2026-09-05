@@ -1,7 +1,6 @@
 import re
 from decimal import Decimal
 from typing import List
-import numpy as np
 
 import pandas as pd
 import pdfplumber
@@ -43,7 +42,6 @@ DROP_COLUMNS = [
     "vat_rate",
     "vat_amount",
     "gross",
-    "final_total",
 ]
 
 
@@ -166,7 +164,6 @@ def resolve_product_names(records: list[dict]) -> list[dict]:
 
 
 def _is_valid_row(rows: list[str]) -> bool:
-    a = 12
     if len(rows) < 0:
         return False
     if rows[0] is None:
@@ -188,7 +185,6 @@ def _get_products_table(pages: List[Page], column_number: int) -> list[list]:
 
     product_rows = [_clear_none_fields(row) for row in merged_rows if _is_valid_row(row)]
     product_rows = [row for row in product_rows if len(row) == column_number]
-    print(product_rows)
     return product_rows
 
 
@@ -222,10 +218,19 @@ def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
         # print(df)
 
         [df, missing] = resolve_product_names_pd(df)
-        print(df)
 
         df.drop(columns=DROP_COLUMNS, inplace=True)
         if missing.any():
             print("Есть записи без совпадения в БД")
             df = translate_missing(df)
-        return df[["part_no", "description", "translated", "part_weight", "qty", "unit_price"]]
+        return df[
+            [
+                "part_no",
+                "description",
+                "translated",
+                "final_total",
+                "part_weight",
+                "qty",
+                "unit_price",
+            ]
+        ]
