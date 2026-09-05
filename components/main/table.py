@@ -128,7 +128,7 @@ class ResultTable(QWidget):
 
     def _render_current_page(self):
         start = self.current_page * self.page_size
-        page_products = self.products[start:start + self.page_size]
+        page_products = self.products[start : start + self.page_size]
         self.table.setRowCount(len(page_products))
         self.table.setColumnCount(len(self.keys))
 
@@ -187,13 +187,7 @@ class ResultTable(QWidget):
         if not file_path:
             return
 
-        rows = [
-            [
-                str(product.get(key, ""))
-                for key in self.keys
-            ]
-            for product in self.products
-        ]
+        rows = [[str(product.get(key, "")) for key in self.keys] for product in self.products]
 
         try:
             output_path = export_rows_to_excel(self.headers, rows, file_path)

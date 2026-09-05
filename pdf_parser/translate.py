@@ -31,21 +31,19 @@ def install_model():
     _translation_ready = True
 
 
-def _argos_translate_batch(texts: list[str]) -> dict[str,str]:
+def _argos_translate_batch(texts: list[str]) -> dict[str, str]:
     """Блокирующий по своей природе fallback-перевод через argostranslate."""
     install_model()
-    return {f"key_{t}" :argostranslate.translate.translate(t, "en", "ru") for t in texts}
+    return {f"key_{t}": argostranslate.translate.translate(t, "en", "ru") for t in texts}
 
 
-async def _argos_translate_batch_nonblocking(texts: list[str]) -> dict[str,str]:
+async def _argos_translate_batch_nonblocking(texts: list[str]) -> dict[str, str]:
     """Гоняем блокирующий argostranslate в отдельном потоке, чтобы не держать event loop."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _argos_translate_batch, texts)
 
 
-
-
-async def translate_batch_async(texts: list[str]) -> dict[str,str]:
+async def translate_batch_async(texts: list[str]) -> dict[str, str]:
     """Переводит через Google Translate, используя Argos при ошибке сети."""
     if not texts:
         return {}
@@ -53,8 +51,8 @@ async def translate_batch_async(texts: list[str]) -> dict[str,str]:
         async with GoogleTranslator() as translator:
             results = await translator.translate(texts, src="en", dest="ru")
         logger.info("Переведено %d строк через Google Translate", len(texts))
-        return {f"key_{result.origin}":result.text for result in results}
-        
+        return {f"key_{result.origin}": result.text for result in results}
+
     except Exception:
         logger.exception("Google Translate недоступен, используется локальный перевод")
         return await _argos_translate_batch_nonblocking(texts)
@@ -64,6 +62,7 @@ async def translate_batch_async(texts: list[str]) -> dict[str,str]:
 #     """Синхронная обёртка над батч-переводом — вызывать из обычного (не async) кода."""
 #     translated = asyncio.run(translate_batch_async(inputs))
 #     return [f"{t} ({orig})" for t, orig in zip(translated, inputs)]
+
 
 def get_translated_results(inputs: list[str]) -> dict[str]:
     """Синхронная обёртка над батч-переводом — вызывать из обычного (не async) кода."""

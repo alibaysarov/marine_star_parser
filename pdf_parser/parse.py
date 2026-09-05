@@ -21,19 +21,35 @@ MARGE_PRICE = "marge_price"
 QTY = "qty"
 
 HEADERS = [
-    'row_num', 'brand', 'part_no', 'description',
-    'unit_price', 'qty', 'gross', 'discount',
-    'total_price', 'vat_rate', 'vat_amount', 'final_total'
+    "row_num",
+    "brand",
+    "part_no",
+    "description",
+    "unit_price",
+    "qty",
+    "gross",
+    "discount",
+    "total_price",
+    "vat_rate",
+    "vat_amount",
+    "final_total",
 ]
 
 DROP_COLUMNS = [
-    'row_num', 'brand', 'discount', 'total_price',
-    'vat_rate', 'vat_amount', 'gross','final_total'
+    "row_num",
+    "brand",
+    "discount",
+    "total_price",
+    "vat_rate",
+    "vat_amount",
+    "gross",
+    "final_total",
 ]
 
 
-def remove_arabic(input:str)-> str:
+def remove_arabic(input: str) -> str:
     return ARABIC_PATTERN.sub("", input).strip()
+
 
 def sanitize_arabic(input: dict) -> dict:
     for key, value in input.items():
@@ -56,6 +72,7 @@ def get_unit_price(amount: Decimal, qty: int) -> Decimal:
         raise InvalidArgumentError("Кол-во не может быть меньше 0 или равным 0")
     return amount / qty
 
+
 def add_margin(input_price: Decimal, margin: int) -> Decimal:
     if margin < 0:
         raise InvalidArgumentError("Маржа не может быть равна 0")
@@ -72,7 +89,9 @@ def process_values(input: dict, margin: int) -> dict:
     return input
 
 
-def update_product_price(products: list[dict] | pd.DataFrame, margin: int) -> list[dict] | pd.DataFrame:
+def update_product_price(
+    products: list[dict] | pd.DataFrame, margin: int
+) -> list[dict] | pd.DataFrame:
     """
     Берет старые продукты и обновляет цену без перевода названия
     """
@@ -89,14 +108,18 @@ def update_product_price(products: list[dict] | pd.DataFrame, margin: int) -> li
 # def translate_names(df: pd.DataFrame)->pd.DataFrame:
 #     get_translated_results
 
-def translate_missing(df: pd.DataFrame)->pd.DataFrame:
-    texts = df['description'].tolist()
+
+def translate_missing(df: pd.DataFrame) -> pd.DataFrame:
+    texts = df["description"].tolist()
     map = get_translated_results(texts)
-    def get_name(name:str)->str:
+
+    def get_name(name: str) -> str:
         key = f"key_{name}"
-        return map.get(key,"")
+        return map.get(key, "")
+
     df["translated"] = df["description"].map(get_name)
     return df
+
 
 def resolve_product_names_pd(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     part_ids = df["part_no"].tolist()
@@ -123,6 +146,7 @@ def resolve_product_names_pd(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]
     missing_mask = ~has_part
     return df, missing_mask
 
+
 def resolve_product_names(records: list[dict]) -> list[dict]:
     part_ids = [record["col_0"] for record in records]
     with SessionLocal() as session:
@@ -141,19 +165,21 @@ def resolve_product_names(records: list[dict]) -> list[dict]:
     return missing_records
 
 
-def _is_valid_row(rows:list[str])->bool:
+def _is_valid_row(rows: list[str]) -> bool:
     a = 12
-    if len(rows) <0:
+    if len(rows) < 0:
         return False
     if rows[0] is None:
         return False
-    is_num =  rows[0].isnumeric()
+    is_num = rows[0].isnumeric()
     return is_num
 
-def _clear_none_fields(rows:list)->list[str]:
+
+def _clear_none_fields(rows: list) -> list[str]:
     return [row for row in rows if row is not None]
 
-def _get_products_table(pages:List[Page],column_number:int)->list[list]:
+
+def _get_products_table(pages: List[Page], column_number: int) -> list[list]:
     merged_rows = []
     for page in pages:
         tables = page.extract_tables()
@@ -164,13 +190,14 @@ def _get_products_table(pages:List[Page],column_number:int)->list[list]:
     product_rows = [row for row in product_rows if len(row) == column_number]
     print(product_rows)
     return product_rows
-            
+
+
 @timeit
 def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
     pd.set_option("display.max_columns", None)
     pd.set_option("display.width", 200)
     with pdfplumber.open(path) as pdf:
-        result =  _get_products_table(pdf.pages,len(HEADERS))
+        result = _get_products_table(pdf.pages, len(HEADERS))
         if not result:
             raise TableNotFoundError("Таблица не найдена!")
 
@@ -179,21 +206,26 @@ def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
         if (df["qty"] == 0).any():
             print("Внимание: есть строки с нулевым qty")
 
-
         df["final_total"] = pd.to_numeric(df["final_total"].str.replace(",", ""), errors="coerce")
         df["qty"] = pd.to_numeric(df["qty"], errors="coerce")
-         
-        df['description'] = (df['description'].str.replace(ARABIC_PATTERN, "", regex=True).str.strip())
-        k = (100+margin) / 100
-        df["unit_price"] = round(k* df["final_total"] / df["qty"],2)
-        
+
+        df["description"] = (
+            df["description"].str.replace(ARABIC_PATTERN, "", regex=True).str.strip()
+        )
+        k = (100 + margin) / 100
+        df["unit_price"] = 0.0
+        non_zero_qty = df["qty"] != 0
+        df.loc[non_zero_qty, "unit_price"] = (
+            k * df.loc[non_zero_qty, "final_total"] / df.loc[non_zero_qty, "qty"]
+        ).round(2)
+
         # print(df)
 
-        [df,missing] = resolve_product_names_pd(df)
+        [df, missing] = resolve_product_names_pd(df)
         print(df)
-        
+
         df.drop(columns=DROP_COLUMNS, inplace=True)
         if missing.any():
             print("Есть записи без совпадения в БД")
             df = translate_missing(df)
-        return df[['part_no', 'description', 'translated', 'part_weight', 'qty', 'unit_price']]
+        return df[["part_no", "description", "translated", "part_weight", "qty", "unit_price"]]
