@@ -25,6 +25,8 @@ class SheetWorker(QRunnable):
             # Остальные поля (supersession, packing, volume_cm3 и т.д.)
             # необязательны и не должны выбрасывать строку целиком.
             df = df.dropna(subset=["PNUS", "номер", "local_part_name"])
+            df["номер"] = df["номер"].astype(str).str.replace(r"[^0-9A-Za-z]|0+$", "", regex=True)
+
             self.signals.finished.emit(self.sheet_name, df)
         except Exception as e:
             logger.exception("Ошибка чтения листа %s из %s", self.sheet_name, self.file_path)

@@ -2,7 +2,7 @@ from itertools import batched
 
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import select
+from sqlalchemy.sql import delete, select
 
 from db.models import SparePart
 
@@ -93,3 +93,7 @@ class PartsRepository:
         if part is not None:
             self._session.delete(part)
             self._session.commit()
+
+    def delete_all(self) -> None:
+        self._session.execute(delete(SparePart))
+        self._session.commit()

@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
 
 from helpers.excel_export import export_rows_to_excel
 
+WEIGHT_KEY = "part_weight"
+
 
 class ResultTable(QWidget):
     def __init__(self):
@@ -30,7 +32,7 @@ class ResultTable(QWidget):
             "part_no",
             "description",
             "translated",
-            "part_weight",
+            WEIGHT_KEY,
             "qty",
             "final_total",
             "unit_price",
@@ -40,7 +42,7 @@ class ResultTable(QWidget):
             "№ Запчасти",
             "Название",
             "Перевод",
-            "Вес (гр.)",
+            "Вес (кг)",
             "Кол-во",
             "Итого",
             "Цена за ед. с маржой",
@@ -137,6 +139,8 @@ class ResultTable(QWidget):
         for row_idx, row_data in enumerate(page_products):
             for col_idx, key in enumerate(self.keys):
                 value = row_data.get(key, "")
+                if key == WEIGHT_KEY and isinstance(value, (int, float)):
+                    value /= 1000
                 self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
 
         self._set_pagination_enabled(bool(self.products))
@@ -189,7 +193,15 @@ class ResultTable(QWidget):
         if not file_path:
             return
 
-        rows = [[str(product.get(key, "")) for key in self.keys] for product in self.products]
+        rows = []
+        for product in self.products:
+            row = []
+            for key in self.keys:
+                value = product.get(key, "")
+                if key == WEIGHT_KEY and isinstance(value, (int, float)):
+                    value /= 1000
+                row.append(value)
+            rows.append(row)
 
         try:
             output_path = export_rows_to_excel(self.headers, rows, file_path)

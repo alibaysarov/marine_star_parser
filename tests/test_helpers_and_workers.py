@@ -20,6 +20,21 @@ def test_export_rows_to_excel_preserves_unicode_and_adds_extension(tmp_path):
     assert worksheet.auto_filter.ref == "A1:B2"
 
 
+def test_export_rows_to_excel_keeps_fractional_values_numeric(tmp_path):
+    output = export_rows_to_excel(
+        ["Цена", "Вес (кг)"],
+        [[496.94, 0.01]],
+        tmp_path / "export.xlsx",
+    )
+
+    worksheet = load_workbook(output)["Товары"]
+
+    assert worksheet["A2"].value == 496.94
+    assert worksheet["A2"].number_format == "#,##0.00"
+    assert worksheet["B2"].value == 0.01
+    assert worksheet["B2"].number_format == "#,##0.00"
+
+
 def test_db_worker_emits_finished_result():
     worker = DbWorker(lambda value: value + 1, 1)
     results = []

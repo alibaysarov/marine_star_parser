@@ -49,9 +49,10 @@ def test_get_parts_by_part_ids_returns_names_and_weights(session):
     seed_parts(session)
     repository = PartsRepository(session)
 
-    assert repository.get_parts_by_part_ids(["P-002", "P-404", "P-001"]) == {
+    assert repository.get_parts_by_part_ids(["P-001", "P-002", "P-003"]) == {
         "P-001": ("Цепь", 10),
         "P-002": ("Прокладка", 20),
+        "P-003": ("Цепь приводная", 30),
     }
 
 
@@ -78,4 +79,13 @@ def test_empty_batch_does_not_change_database(session):
     repository = PartsRepository(session)
 
     assert repository.batch_import([]) is None
+    assert repository.get_all() == []
+
+
+def test_delete_all_removes_every_part(session):
+    seed_parts(session)
+    repository = PartsRepository(session)
+
+    repository.delete_all()
+
     assert repository.get_all() == []

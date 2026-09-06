@@ -8,6 +8,11 @@ repos:
         pass_filenames: false
       - id: lint
         name: ruff lint
-        entry: uv run ruff check .
+        entry: uv run ruff check . --fix
+        language: system
+        pass_filenames: false
+      - id: test
+        name: unit test
+        entry: uv run pytest
         language: system
         pass_filenames: false

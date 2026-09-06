@@ -43,6 +43,9 @@ extend-exclude = ["alembic"]
 select = ["E", "F", "I"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"db/**/*.py" = ["F401"]
+
 [tool.coverage.run]
 branch = true
 source = ["repository", "service", "helpers", "workers", "excel_parser"]

@@ -36,6 +36,16 @@ class PartsService:
 
             return repo.batch_import(products)
 
+    @staticmethod
+    def _delete_part(part_id: int) -> None:
+        with SessionLocal() as session:
+            PartsRepository(session).delete(part_id)
+
+    @staticmethod
+    def _delete_all_parts() -> None:
+        with SessionLocal() as session:
+            PartsRepository(session).delete_all()
+
     def upload_parts_async(
         self,
         products: list[dict],
@@ -55,6 +65,22 @@ class PartsService:
         if on_error:
             worker.signals.error.connect(on_error)
 
+        self._pool.start(worker)
+
+    def delete_part_async(self, part_id: int, on_success=None, on_error=None) -> None:
+        worker = DbWorker(self._delete_part, part_id)
+        if on_success:
+            worker.signals.finished.connect(on_success)
+        if on_error:
+            worker.signals.error.connect(on_error)
+        self._pool.start(worker)
+
+    def delete_all_parts_async(self, on_success=None, on_error=None) -> None:
+        worker = DbWorker(self._delete_all_parts)
+        if on_success:
+            worker.signals.finished.connect(on_success)
+        if on_error:
+            worker.signals.error.connect(on_error)
         self._pool.start(worker)
 
     def load_parts_async(

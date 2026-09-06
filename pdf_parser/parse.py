@@ -110,26 +110,35 @@ def update_product_price(
 
 
 def translate_missing(df: pd.DataFrame) -> pd.DataFrame:
-    texts = df["description"].tolist()
-    map = get_translated_results(texts)
+
+    texts = df[df["translated"].isna()]["description"].tolist()
+
+    map_ = get_translated_results(texts)
 
     def get_name(name: str) -> str:
         key = f"key_{name}"
-        return map.get(key, "")
+        return map_.get(key, "")
 
-    df["translated"] = df["description"].map(get_name)
+    mask = df["translated"].isna()
+    df.loc[mask, "translated"] = df.loc[mask, "description"].map(get_name)
+    # df["translated"] = df["description"].map(get_name)
     return df
 
 
 def resolve_product_names_pd(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    part_ids = df["part_no"].tolist()
-
+    target_key = "part_no_normalized"
+    part_ids = df["part_no_normalized"].tolist()
+    print(part_ids)
     with SessionLocal() as session:
         parts_by_part_id = PartsRepository(session).get_parts_by_part_ids(part_ids)
+        print(parts_by_part_id)
 
     def get_name(part_id: str) -> str | None:
         part = parts_by_part_id.get(part_id)
-        return part[0] if part is not None else None
+        if part is not None:
+            return part[0]
+        return None
+        # return part[0] if part is not None else None
 
     def get_weight(part_id: str) -> str | int:
         part = parts_by_part_id.get(part_id)
@@ -137,13 +146,17 @@ def resolve_product_names_pd(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]
             return "-"
         return part[1] if part[1] is not None else "-"
 
-    found_parts = df["part_no"].map(parts_by_part_id.get)
+    found_parts = df[target_key].map(parts_by_part_id.get)
+    print(found_parts)
     has_part = found_parts.notna()
 
-    df["translated"] = df["part_no"].map(get_name)
-    df["part_weight"] = df["part_no"].map(get_weight)
+    df["translated"] = df[target_key].map(get_name)
+    print(df["translated"])
 
+    df["part_weight"] = df[target_key].map(get_weight)
+    df.drop(columns=[target_key], inplace=True)
     missing_mask = ~has_part
+    print(missing_mask)
     return df, missing_mask
 
 
@@ -217,13 +230,15 @@ def calculate_products_from_file(path: str, margin: int) -> pd.DataFrame:
             k * df.loc[non_zero_qty, "final_total"] / df.loc[non_zero_qty, "qty"]
         ).round(2)
 
-        # print(df)
-
+        df["part_no_normalized"] = (
+            df["part_no"].astype(str).str.replace(r"[^0-9A-Za-z]|0+$", "", regex=True)
+        )
+        print(df)
         [df, missing] = resolve_product_names_pd(df)
-
         df.drop(columns=DROP_COLUMNS, inplace=True)
         if missing.any():
             print("Есть записи без совпадения в БД")
+            print(df)
             df = translate_missing(df)
         df["marge"] = 0
         return df[

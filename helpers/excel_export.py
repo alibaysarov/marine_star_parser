@@ -1,4 +1,6 @@
 from collections.abc import Sequence
+from decimal import Decimal
+from numbers import Integral, Real
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -28,6 +30,15 @@ def export_rows_to_excel(
 
     for row in rows:
         worksheet.append(list(row))
+
+    for row in worksheet.iter_rows(min_row=2):
+        for cell in row:
+            value = cell.value
+            is_fractional = isinstance(value, Decimal) and value != value.to_integral_value()
+            if isinstance(value, Real) and not isinstance(value, (bool, Integral)):
+                is_fractional = not value.is_integer()
+            if is_fractional:
+                cell.number_format = "#,##0.00"
 
     worksheet.freeze_panes = "A2"
     worksheet.auto_filter.ref = worksheet.dimensions
